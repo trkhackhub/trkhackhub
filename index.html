@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Hub - Doğrulama ve Bağlantı Yönlendirici</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex items-center justify-center p-4">
+
+    <!-- 1. Site Açılış Yükleme Ekranı (5 Saniye Preloader) -->
+    <div id="preloader" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center p-4 transition-opacity duration-500">
+        <div class="w-16 h-16 bg-brand-600/10 border border-brand-500/30 text-brand-500 rounded-2xl flex items-center justify-center mb-6 text-3xl shadow-lg shadow-brand-500/10 animate-bounce">
+            <i class="fa-solid fa-code"></i>
+        </div>
+        <div class="relative w-12 h-12 mb-4">
+            <div class="absolute inset-0 rounded-full border-4 border-slate-800 border-t-brand-500 animate-spin"></div>
+        </div>
+        <h2 class="text-lg font-bold tracking-wide">Nexus Hub Yükleniyor...</h2>
+        <p class="text-slate-500 text-xs mt-2">Lütfen bekleyin (<span id="preloaderTimer">5</span>s)</p>
+    </div>
+
+    <!-- 2. Ana Reklam & Link Yönlendirici Kartı -->
+    <div id="mainContent" class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 text-center shadow-2xl relative overflow-hidden opacity-0 transition-opacity duration-500">
+        
+        <!-- Üst Reklam / Uyarı Rozeti -->
+        <div class="bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold px-3 py-1.5 rounded-lg mb-6 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>Sadece Oyun İçi İtem Takası Geçerlidir!</span>
+        </div>
+
+        <!-- Arka Plan Işık Efekti -->
+        <div class="absolute -top-24 -left-24 w-48 h-48 bg-brand-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-purple-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Logo / İkon -->
+        <div class="w-16 h-16 bg-brand-600/10 border border-brand-500/30 text-brand-500 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-lg shadow-brand-500/10">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+
+        <!-- Başlık -->
+        <h1 class="text-2xl font-extrabold tracking-tight mb-2">
+            Hile Almak Mı İstiyosun?
+        </h1>
+        
+        <p class="text-slate-400 text-xs mb-6">
+            Devam etmek ve takas alanına yönlendirilmek için lütfen bot doğrulamasını tamamlayın.
+        </p>
+
+        <!-- Sahte Reklam Alanı -->
+        <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-3 mb-6 text-left relative">
+            <span class="text-[10px] uppercase font-bold tracking-wider text-slate-600 block mb-1">Sponsorlu / Reklam</span>
+            <div class="flex items-center justify-between text-xs text-slate-300">
+                <span class="flex items-center gap-2">
+                    <i class="fa-solid fa-bolt text-amber-400"></i> Hızlı İtem Takası & Güvenli Teslimat
+                </span>
+                <span class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">AD</span>
+            </div>
+        </div>
+
+        <!-- Bot Doğrulama Kutusu (Captcha Style) -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 mb-6 flex items-center justify-between text-left">
+            <label class="flex items-center gap-3 cursor-pointer select-none">
+                <input type="checkbox" id="botCheck" class="w-5 h-5 rounded border-slate-700 text-brand-600 focus:ring-brand-500 focus:ring-offset-slate-900 bg-slate-900 cursor-pointer" onchange="toggleButton()">
+                <span class="text-xs font-medium text-slate-300">Ben robot değilim</span>
+            </label>
+            <div class="flex flex-col items-center">
+                <i class="fa-solid fa-arrows-rotate text-slate-600 text-lg animate-spin" style="animation-duration: 4s;"></i>
+                <span class="text-[8px] text-slate-600 mt-1 uppercase font-bold">reCAPTCHA</span>
+            </div>
+        </div>
+
+        <!-- AL Butonu -->
+        <button id="alBtn" onclick="openTimerModal()" disabled class="w-full bg-slate-800 text-slate-500 cursor-not-allowed font-extrabold text-lg py-3.5 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3">
+            <i class="fa-brands fa-discord text-xl"></i> <span>AL</span>
+        </button>
+
+        <!-- Alt Bilgi -->
+        <div class="mt-4 flex items-center justify-center gap-2 text-[11px] text-slate-500 font-medium">
+            <i class="fa-solid fa-lock text-brand-500"></i> Güvenli Bağlantı • Takas Sunucusu
+        </div>
+
+    </div>
+
+    <!-- 3. 15 Saniye Bekleme Penceresi (Modal Popup) -->
+    <div id="timerModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 max-w-sm w-full rounded-2xl p-6 text-center shadow-2xl relative">
+            
+            <!-- Dönen Yükleme Halkası -->
+            <div class="relative w-20 h-20 mx-auto mb-5 flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full border-4 border-slate-800 border-t-brand-500 animate-spin"></div>
+                <span id="countdown" class="text-2xl font-black text-brand-500">15</span>
+            </div>
+
+            <h3 class="text-lg font-bold mb-2">Güvenli Bağlantı Hazırlanıyor</h3>
+            <p class="text-slate-400 text-xs mb-6">
+                Lütfen bekleyin, takas sunucusuna yönlendiriliyorsunuz...
+            </p>
+
+            <!-- Sayaç Barı -->
+            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+                <div id="progressBar" class="bg-gradient-to-r from-brand-600 to-purple-600 h-full w-0 transition-all duration-1000 ease-linear"></div>
+            </div>
+
+            <p class="text-[10px] text-slate-500 mt-4">
+                5 saniye Lütfen bekleyin...
+            </p>
+        </div>
+    </div>
+
+    <!-- JavaScript Kodları -->
+    <script>
+        // Site Açılış Preloader (5 Saniye)
+        window.addEventListener('DOMContentLoaded', () => {
+            let loadTime = 5;
+            const timerEl = document.getElementById('preloaderTimer');
+            const preloader = document.getElementById('preloader');
+            const mainContent = document.getElementById('mainContent');
+
+            const loadInterval = setInterval(() => {
+                loadTime--;
+                if (timerEl) timerEl.innerText = loadTime;
+
+                if (loadTime <= 0) {
+                    clearInterval(loadInterval);
+                    preloader.classList.add('opacity-0');
+                    setTimeout(() => {
+                        preloader.style.display = 'none';
+                        mainContent.classList.remove('opacity-0');
+                    }, 500);
+                }
+            }, 1000);
+        });
+
+        // Bot Doğrulama Kontrolü
+        function toggleButton() {
+            const checkbox = document.getElementById('botCheck');
+            const btn = document.getElementById('alBtn');
+
+            if (checkbox.checked) {
+                btn.disabled = false;
+                btn.className = "w-full bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-500 hover:to-purple-500 text-white font-extrabold text-lg py-3.5 px-6 rounded-xl transition-all duration-200 transform hover:-translate-y-0.5 shadow-xl shadow-brand-500/25 flex items-center justify-center gap-3 cursor-pointer";
+            } else {
+                btn.disabled = true;
+                btn.className = "w-full bg-slate-800 text-slate-500 cursor-not-allowed font-extrabold text-lg py-3.5 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3";
+            }
+        }
+
+        // 15 Saniye Bekleme ve Yönlendirme Modal
+        function openTimerModal() {
+            const modal = document.getElementById('timerModal');
+            const countdownEl = document.getElementById('countdown');
+            const progressBar = document.getElementById('progressBar');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            let timeLeft = 5;
+            const totalTime = 5;
+
+            progressBar.style.width = '0%';
+
+            const interval = setInterval(() => {
+                timeLeft--;
+                countdownEl.innerText = timeLeft;
+
+                const progressPercent = ((totalTime - timeLeft) / totalTime) * 100;
+                progressBar.style.width = `${progressPercent}%`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    window.location.href = "https://discord.gg/c8ptRcydaf";
+                }
+            }, 1000);
+        }
+    </script>
+
+</body>
+</html>
